@@ -3,7 +3,6 @@ const app = express();
 const port = 3000;
 
 const goodsRouter = require("./routes/goods");
-const cartsRouter = require("./routes/carts");
 
 
 const connect = require("./schemas");
@@ -12,7 +11,7 @@ connect();
 app.use(express.json());
 
 // localhost:3000/api
-app.use("/api", [goodsRouter, cartsRouter]);
+app.use("/api", [goodsRouter]);
 
 app.get('/', (req, res) => {
   res.send('Hello World!');

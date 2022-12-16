@@ -43,7 +43,7 @@ router.get("/goods", (req, res) => {
 	res.json({ goods: goods });
 });
 
-// localhost:3000/api/goods POST
+//상품 추가 API
 router.post("/goods", async (req, res) => {
 	const { goodsId, name, thumbnailUrl, category, price } = req.body;
 
@@ -55,6 +55,27 @@ router.post("/goods", async (req, res) => {
   const createdGoods = await Goods.create({ goodsId, name, thumbnailUrl, category, price });
 
   res.json({ goods: createdGoods });
+});
+
+//장바구니 목록 조회 API
+router.get("/goods/carts", async (req, res) => {
+  const carts = await Cart.find();
+  const goodsIds = carts.map((cart) => {
+      return cart.goodsId
+  });
+
+  const goods = await Goods.find({ goodsId: goodsIds });
+
+  const results = carts.map((cart) => {
+      return {
+          "quantity": cart.quantity,
+          "goods": goods.find((item) => item.goodsId === cart.goodsId)
+      };
+  });
+
+  res.json({
+      carts: results
+  });
 });
 
 //장바구니에 상품 담는 API
@@ -75,21 +96,23 @@ router.post("/goods/:goodsId/cart", async (req, res) => {
   res.json({ result: "success" });
 });
 
-//장바구니 상품 수량 수정 API
+//장바구니 상품 수량 수정 API (수량 1미만 에러)
 router.put("/goods/:goodsId/cart", async (req, res) => {
   const { goodsId } = req.params;
   const { quantity } = req.body;
 
+  if (quantity < 1) {
+    res.status(400).json({ errorMessage: "수량은 1 이상이어야 합니다." });
+    return;
+  }
+
   const existsCarts = await Cart.find({ goodsId: Number(goodsId) });
   if (existsCarts.length) {
-    await Cart.updateOne(
-      { goodsId: Number(goodsId) },
-      { $set: { quantity : quantity} }
-      );
+    await Cart.updateOne({ goodsId: Number(goodsId) }, { $set: { quantity } });
   }
 
   res.status(200).json({ success: true });
-})
+});
 
 //장바구니 상품 제거 API
 router.delete("/goods/:goodsId/cart", async (req, res) => {
@@ -102,5 +125,7 @@ router.delete("/goods/:goodsId/cart", async (req, res) => {
 
   res.json({ result: "success" });
 });
+
+
 
 module.exports = router;

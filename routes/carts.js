@@ -3,7 +3,7 @@ const Goods = require("../schemas/goods");
 const Cart = require("../schemas/cart");
 const router = express.Router();
 
-//localhost:3000/api/carts GET Method
+//장바구니 목록 조회 API
 router.get("/carts", async (req, res) => {
     const carts = await Cart.find();
     const goodsIds = carts.map((cart) => {
